@@ -373,7 +373,12 @@ Route::prefix('admin')->group(function () {
     Route::get('zoom/hosts', [ZoomController::class, 'listHosts']);
     Route::get('meeting-providers/status', [ZoomController::class, 'meetingProviderStatus']);
     Route::get('platform/meeting-settings', [\App\Http\Controllers\Api\PlatformMeetingSettingsController::class, 'show']);
-    Route::patch('platform/meeting-settings', [\App\Http\Controllers\Api\PlatformMeetingSettingsController::class, 'update']);
+    // PATCH preferred; PUT/POST aliases for proxies / older clients that block PATCH.
+    Route::match(
+        ['patch', 'put', 'post'],
+        'platform/meeting-settings',
+        [\App\Http\Controllers\Api\PlatformMeetingSettingsController::class, 'update']
+    );
     Route::get('zoom/embed/config', [ZoomEmbedController::class, 'config']);
     Route::post('zoom/embed/auth', [ZoomEmbedController::class, 'auth']);
     Route::post('zoom/meetings', [ZoomController::class, 'createMeeting']);

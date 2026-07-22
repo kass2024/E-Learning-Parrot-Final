@@ -3929,12 +3929,30 @@ export const getPlatformMeetingSettings = async () => {
 export const updatePlatformMeetingSettings = async (payload: {
   main_platform_meeting_provider: "zoom" | "daily";
 }) => {
-  const response = await api.patch(`/platform/meeting-settings`, payload);
-  return response.data as {
+  type MeetingSettingsUpdate = {
     message: string;
     main_platform_meeting_provider: "zoom" | "daily";
     meeting_provider_status: Awaited<ReturnType<typeof getMeetingProviderStatus>>;
+    can_manage_main_platform_settings?: boolean;
   };
+
+  try {
+    const response = await api.patch(`/platform/meeting-settings`, payload);
+    return response.data as MeetingSettingsUpdate;
+  } catch (error: unknown) {
+    const status = (error as { response?: { status?: number } })?.response?.status;
+    // Some proxies reject PATCH; fall back to PUT then POST (backend accepts all three).
+    if (status === 404 || status === 405) {
+      try {
+        const response = await api.put(`/platform/meeting-settings`, payload);
+        return response.data as MeetingSettingsUpdate;
+      } catch {
+        const response = await api.post(`/platform/meeting-settings`, payload);
+        return response.data as MeetingSettingsUpdate;
+      }
+    }
+    throw error;
+  }
 };
 
 export const getZoomHosts = async (platformInstitutionId?: number) => {
