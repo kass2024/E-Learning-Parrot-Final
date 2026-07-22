@@ -1,0 +1,25 @@
+{
+  "name": "docs",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "video-guide": "node generate-video-guide.mjs",
+    "video-tour": "node generate-video-tour.mjs",
+    "save-auth": "node save-auth-session.mjs",
+    "screenshots": "node capture-screenshots.mjs",
+    "sales-deck": "node generate-sales-deck.mjs",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@ffmpeg-installer/ffmpeg": "^1.1.0",
+    "edge-tts-node": "^1.5.7",
+    "pptxgenjs": "^4.0.1"
+  },
+  "devDependencies": {
+    "playwright": "^1.61.1"
+  }
+}

@@ -1,0 +1,21 @@
+---
+description: Always commit, push, and redeploy E-Learning Xander after code changes
+alwaysApply: true
+---
+
+# Always push and deploy
+
+After finishing any feature, fix, or meaningful code change in this project:
+
+1. **Commit** the relevant changed files (frontend and/or backend as needed). Do not leave completed work only on disk.
+2. **Push** to `origin` (`main` unless told otherwise).
+3. **Redeploy** to the VPS so production matches git. Preferred command from the machine with `deploy/vps.env`:
+
+```text
+py -3 E-learning-parrot-backend/deploy/scripts/redeploy_code_only.py
+```
+
+(from `E-Learning-Xander-Final` root). That script pulls both repos on the VPS and runs `vps-deploy.sh` without importing the DB.
+
+Do this by default for Xander Academy work unless the user explicitly says not to deploy.
+Do not commit `dist/`, secrets, or unrelated dirty files.

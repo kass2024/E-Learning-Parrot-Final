@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Xander Learning Hub — 2-Day Training Manual</title>
+  <style>
+  @page { margin: 18mm 15mm; size: A4; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: "Segoe UI", Arial, Helvetica, sans-serif;
+    color: #1e293b;
+    line-height: 1.55;
+    font-size: 11pt;
+    max-width: 210mm;
+    margin: 0 auto;
+    padding: 20px;
+  }
+  .cover {
+    text-align: center;
+    padding: 60px 20px 40px;
+    page-break-after: always;
+    border-bottom: 4px solid #012F6B;
+  }
+  .cover h1 { color: #012F6B; font-size: 28pt; margin: 0 0 8px; }
+  .cover h2 { color: #F2A65A; font-size: 16pt; font-weight: 600; margin: 0 0 30px; }
+  .cover .meta { text-align: left; max-width: 420px; margin: 40px auto 0; }
+  .cover .meta table { width: 100%; border-collapse: collapse; }
+  .cover .meta td { padding: 6px 10px; border-bottom: 1px solid #e2e8f0; }
+  .cover .meta td:first-child { font-weight: 700; color: #012F6B; width: 40%; }
+  h1.day { color: #012F6B; font-size: 20pt; border-bottom: 3px solid #F2A65A; padding-bottom: 6px; margin-top: 0; page-break-before: always; }
+  h2 { color: #012F6B; font-size: 14pt; margin-top: 22px; }
+  h3 { color: #0a3d7a; font-size: 12pt; margin-top: 16px; }
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 10pt; }
+  th, td { border: 1px solid #cbd5e1; padding: 7px 10px; text-align: left; vertical-align: top; }
+  th { background: #012F6B; color: #fff; font-weight: 600; }
+  tr:nth-child(even) { background: #f8fafc; }
+  .agenda th { background: #254D81; }
+  .break-row td { background: #fef3c7; font-style: italic; text-align: center; }
+  ul, ol { margin: 8px 0; padding-left: 22px; }
+  li { margin: 4px 0; }
+  .box {
+    background: #f0f4f8;
+    border-left: 4px solid #012F6B;
+    padding: 12px 16px;
+    margin: 14px 0;
+    border-radius: 0 6px 6px 0;
+  }
+  .exercise {
+    background: #ecfdf5;
+    border-left: 4px solid #10b981;
+    padding: 12px 16px;
+    margin: 14px 0;
+    border-radius: 0 6px 6px 0;
+  }
+  .exercise strong { color: #047857; }
+  code, .mono { font-family: Consolas, monospace; font-size: 9.5pt; background: #f1f5f9; padding: 1px 5px; border-radius: 3px; }
+  .checklist { list-style: none; padding-left: 0; }
+  .checklist li::before { content: "☐ "; color: #012F6B; font-weight: bold; }
+  .footer { margin-top: 40px; padding-top: 16px; border-top: 2px solid #e2e8f0; font-size: 9pt; color: #64748b; text-align: center; }
+  @media print {
+    body { padding: 0; }
+    h1.day { page-break-before: always; }
+    h2, h3 { page-break-after: avoid; }
+    table, .box, .exercise { page-break-inside: avoid; }
+  }
+  </style>
+</head>
+<body>
+
+<div class="cover">
+  <h1>Xander Learning Hub</h1>
+  <h2>Full E-Learning Platform Training — Zero to Hero</h2>
+  <p style="font-size:12pt;color:#475569;">Xander Global Scholars</p>
+  <div class="meta">
+    <table>
+      <tr><td>Training dates</td><td><strong>9 July 2026</strong> &amp; <strong>10 July 2026</strong></td></tr>
+      <tr><td>Daily time</td><td><strong>10:00 AM – 1:00 PM</strong></td></tr>
+      <tr><td>Total duration</td><td>6 hours (2 × 3-hour sessions)</td></tr>
+      <tr><td>Audience</td><td>Admin staff, coordinators, instructors</td></tr>
+      <tr><td>Level</td><td>Beginner → Advanced</td></tr>
+      <tr><td>Live site</td><td>xanderglobalacademy.com</td></tr>
+    </table>
+  </div>
+</div>
+
+<h1 class="day">Day 1 — Foundations &amp; Learner Lifecycle</h1>
+<p><strong>Thursday, 9 July 2026 · 10:00 AM – 1:00 PM</strong></p>
+
+<table class="agenda">
+  <tr><th>Time</th><th>Topic</th><th>Type</th></tr>
+  <tr><td>10:00 – 10:20</td><td>Welcome, platform overview, roles</td><td>Presentation</td></tr>
+  <tr><td>10:20 – 10:45</td><td>Public website tour</td><td>Demo</td></tr>
+  <tr><td>10:45 – 11:15</td><td>Learner signup &amp; student management</td><td>Hands-on</td></tr>
+  <tr class="break-row"><td>11:15 – 11:30</td><td colspan="2">Break</td></tr>
+  <tr><td>11:30 – 12:15</td><td>Courses, programs &amp; approvals</td><td>Hands-on</td></tr>
+  <tr><td>12:15 – 12:45</td><td>Enrollment workflow end-to-end</td><td>Hands-on</td></tr>
+  <tr><td>12:45 – 13:00</td><td>Day 1 recap &amp; Q&amp;A</td><td>Discussion</td></tr>
+</table>
+
+<h2>Platform roles</h2>
+<table>
+  <tr><th>Role</th><th>Who</th><th>Dashboard</th></tr>
+  <tr><td>Admin / Staff</td><td>Head office</td><td>Full admin menu</td></tr>
+  <tr><td>Partner company</td><td>Institution admin</td><td>Scoped to institution</td></tr>
+  <tr><td>Instructor</td><td>Teachers</td><td>Courses, materials, quizzes</td></tr>
+  <tr><td>Learner</td><td>Students</td><td>My courses, payment, certificates</td></tr>
+  <tr><td>Meeting user</td><td>Webinar coordinator</td><td>Signups &amp; schedules only</td></tr>
+</table>
+
+<h2>10:00 – 10:20 · Platform overview</h2>
+<div class="box">
+  <strong>Xander Learning Hub</strong> is a full e-learning system: public catalog, signup, Stripe payments, course materials, Zoom live classes, quizzes, certificates, webinar booking, marketing banners, partner institutions, and revenue/payout management.
+</div>
+
+<h2>10:20 – 10:45 · Public website</h2>
+<table>
+  <tr><th>Page</th><th>URL</th><th>Purpose</th></tr>
+  <tr><td>Homepage</td><td><code>/</code></td><td>Hero, courses, star banner</td></tr>
+  <tr><td>Programs</td><td><code>/courses</code></td><td>Course catalog</td></tr>
+  <tr><td>Sign up</td><td><code>/signup</code></td><td>Learner registration</td></tr>
+  <tr><td>Book meeting</td><td><code>/meeting-registration</code></td><td>Appointment booking</td></tr>
+  <tr><td>Login</td><td><code>/login</code></td><td>All roles</td></tr>
+</table>
+
+<h2>10:45 – 11:15 · Student management</h2>
+<h3>Enrollment statuses</h3>
+<table>
+  <tr><th>Status</th><th>Meaning</th></tr>
+  <tr><td>Enrolled</td><td>Applied — awaiting approval</td></tr>
+  <tr><td>Approved</td><td>Approved — payment may be due</td></tr>
+  <tr><td>Paid</td><td>Payment complete — full access</td></tr>
+  <tr><td>Completed</td><td>Finished — certificate eligible</td></tr>
+  <tr><td>Rejected</td><td>Declined</td></tr>
+</table>
+<p><strong>Admin path:</strong> Dashboard → Student Management → Approve student → Approve enrollment → Mark paid</p>
+
+<div class="exercise"><strong>Exercise 2:</strong> Register a test learner, approve in admin, mark paid. Confirm course appears in learner My Courses.</div>
+
+<h2>11:30 – 12:15 · Courses &amp; programs</h2>
+<ul>
+  <li><strong>Programs</strong> — group courses (Dashboard → Programs)</li>
+  <li><strong>Courses</strong> — admin creates Active course OR instructor submits → Course Approval</li>
+  <li><strong>Study Shifts</strong> — weekly time slots learners pick at signup</li>
+</ul>
+<div class="exercise"><strong>Exercise 3:</strong> Create program + course + study shift. Verify on public catalog.</div>
+
+<h2>12:15 – 12:45 · Full enrollment workflow</h2>
+<ol class="checklist">
+  <li>Course is Active on catalog</li>
+  <li>Learner signs up at /signup</li>
+  <li>Admin approves student</li>
+  <li>Admin approves enrollment</li>
+  <li>Learner pays (Stripe) or admin marks paid</li>
+  <li>Learner accesses materials in My Courses</li>
+</ol>
+
+<h1 class="day">Day 2 — Operations, Live Learning &amp; Growth</h1>
+<p><strong>Friday, 10 July 2026 · 10:00 AM – 1:00 PM</strong></p>
+
+<table class="agenda">
+  <tr><th>Time</th><th>Topic</th><th>Type</th></tr>
+  <tr><td>10:00 – 10:25</td><td>Payments, revenue &amp; instructor payouts</td><td>Demo</td></tr>
+  <tr><td>10:25 – 11:05</td><td>Zoom, live classes, recordings, cohorts</td><td>Hands-on</td></tr>
+  <tr class="break-row"><td>11:05 – 11:20</td><td colspan="2">Break</td></tr>
+  <tr><td>11:20 – 11:50</td><td>Webinar booking &amp; meeting registration</td><td>Hands-on</td></tr>
+  <tr><td>11:50 – 12:15</td><td>Marketing &amp; partner institutions</td><td>Hands-on</td></tr>
+  <tr><td>12:15 – 12:40</td><td>Instructor tools demo</td><td>Demo</td></tr>
+  <tr><td>12:40 – 13:00</td><td>Analytics, certificates, Q&amp;A</td><td>Wrap-up</td></tr>
+</table>
+
+<h2>10:00 – 10:25 · Payments &amp; revenue</h2>
+<table>
+  <tr><th>Menu</th><th>Purpose</th></tr>
+  <tr><td>Payment Management</td><td>Stripe transactions, manual status</td></tr>
+  <tr><td>Revenue Management</td><td>Platform vs instructor split, charts</td></tr>
+  <tr><td>Instructor Payouts</td><td>Approve/reject payout requests</td></tr>
+</table>
+
+<h2>10:25 – 11:05 · Live sessions (4 types)</h2>
+<table>
+  <tr><th>Feature</th><th>Menu</th><th>Use for</th></tr>
+  <tr><td>Zoom Meetings</td><td>Zoom Meetings</td><td>Ad-hoc staff meetings</td></tr>
+  <tr><td>Live Classes</td><td>Live Classes</td><td>Course-scheduled sessions</td></tr>
+  <tr><td>Webinar Signups</td><td>Webinar Signups</td><td>Public booking → approve → email</td></tr>
+  <tr><td>Live Cohorts</td><td>Live Cohorts</td><td>Queue + host studio</td></tr>
+</table>
+<div class="exercise"><strong>Exercise 6:</strong> Create Zoom meeting + schedule Live Class on demo course.</div>
+
+<h2>11:20 – 11:50 · Meeting registration</h2>
+<p>Public: <code>/meeting-registration</code> — pick time, enter details, select booking reason.</p>
+<p>Admin: <strong>Webinar Signups</strong> — Approve / Reschedule / Remind / Reject.</p>
+<p>Admin: <strong>Schedules</strong> — define bookable slots. If none: contact info@xanderglobalscholars.com shown.</p>
+<div class="exercise"><strong>Exercise 7:</strong> Book test meeting → approve in Webinar Signups.</div>
+
+<h2>11:50 – 12:15 · Marketing</h2>
+<ul>
+  <li><strong>Advert Banner</strong> — top promo strip (headline, coupon, countdown)</li>
+  <li><strong>Star Banner</strong> — homepage middle-right blinking promo</li>
+  <li><strong>Partner Institutions</strong> — onboard partners, branded portals</li>
+</ul>
+
+<h2>12:15 – 12:40 · Instructor tools</h2>
+<p>Materials upload · Quizzes (incl. AI) · Live Classes · Students · Performance · Earnings</p>
+
+<h2>12:40 – 13:00 · Analytics &amp; certificates</h2>
+<ul>
+  <li><strong>Reports &amp; Analytics</strong> — enrollments, revenue, demographics</li>
+  <li><strong>Certificates</strong> — PDF with QR; verify at <code>/verify/certificate/...</code></li>
+  <li><strong>View as</strong> — impersonate learner/instructor for support</li>
+</ul>
+
+<h2>Final competency checklist</h2>
+<table>
+  <tr><th>Skill</th><th>Day</th></tr>
+  <tr><td>Explain roles &amp; navigate public site</td><td>1</td></tr>
+  <tr><td>Approve learner enrollment &amp; mark paid</td><td>1</td></tr>
+  <tr><td>Create course, program, study shift</td><td>1</td></tr>
+  <tr><td>Manage payments &amp; revenue</td><td>2</td></tr>
+  <tr><td>Create Zoom meeting &amp; live class</td><td>2</td></tr>
+  <tr><td>Approve webinar signup &amp; reschedule</td><td>2</td></tr>
+  <tr><td>Publish marketing banners</td><td>2</td></tr>
+  <tr><td>Use analytics &amp; View as support</td><td>2</td></tr>
+</table>
+
+<div class="footer">
+  Xander Global Scholars — Xander Learning Hub Training Manual v1.0 · July 2026<br />
+  To save as PDF: open in browser → Print → Save as PDF
+</div>
+
+</body>
+</html>

@@ -1,0 +1,30 @@
+{
+  "cookies": [],
+  "origins": [
+    {
+      "origin": "https://xanderglobalacademy.com",
+      "localStorage": [
+        {
+          "name": "parrot_app_build_id",
+          "value": "1783399331858"
+        },
+        {
+          "name": "parrot_user_email",
+          "value": "info@xanderglobalscholars.com"
+        },
+        {
+          "name": "parrot_user_name",
+          "value": "Xander Global Scholars Admin"
+        },
+        {
+          "name": "parrot_is_main_admin",
+          "value": "1"
+        },
+        {
+          "name": "parrot_user_role",
+          "value": "admin"
+        }
+      ]
+    }
+  ]
+}

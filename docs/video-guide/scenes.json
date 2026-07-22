@@ -1,0 +1,144 @@
+{
+  "title": "Xander Learning Hub — Complete User Guide",
+  "subtitle": "Study · Learn · Succeed Globally",
+  "voice": "en-US-JennyNeural",
+  "width": 1920,
+  "height": 1080,
+  "secondsPerTitle": 6,
+  "scenes": [
+    {
+      "id": "intro",
+      "type": "title",
+      "title": "Xander Learning Hub",
+      "subtitle": "Complete Platform User Guide",
+      "narration": "Welcome to the Xander Learning Hub complete user guide. In the next few minutes, you will learn how to use every part of the system — from the public website and learner signup, to the admin dashboard, live classes, payments, and certificates. Let's get started."
+    },
+    {
+      "id": "overview",
+      "type": "title",
+      "title": "Platform Overview",
+      "subtitle": "One system · Five roles · Full control",
+      "narration": "Xander Learning Hub is an all-in-one e-learning platform. It includes a public website for learners, an admin dashboard for your team, instructor tools for teaching, learner portals for studying, and partner institution portals for franchises. Everyone logs in from the same login page, but each role sees a menu designed for their job."
+    },
+    {
+      "id": "homepage",
+      "url": "/",
+      "wait": 3500,
+      "title": "Public Homepage",
+      "narration": "This is the public homepage. It is the first thing prospective students see. Notice the hero section, featured programs, and marketing banners. The top promo strip and starburst banner on the right can be updated from the admin panel under Marketing Management — without touching any code."
+    },
+    {
+      "id": "courses",
+      "url": "/courses",
+      "wait": 3500,
+      "title": "Course Catalog",
+      "narration": "The course catalog lists every program your school offers. Learners can browse, search, compare prices, and choose a course. Each card shows the program name, description, and fee. Clicking enroll takes them to the signup flow."
+    },
+    {
+      "id": "signup",
+      "url": "/signup",
+      "wait": 3500,
+      "title": "Learner Registration",
+      "narration": "The signup page is a guided registration form. Learners enter their personal details, select a course and study shift, and submit their application. After signup, they receive a confirmation email. An admin or coordinator must approve the student before they can access the dashboard."
+    },
+    {
+      "id": "meeting",
+      "url": "/meeting-registration",
+      "wait": 4000,
+      "title": "Meeting & Webinar Booking",
+      "narration": "The meeting registration page lets prospects book a consultation or webinar with your team. They pick a date and time slot, fill in their details, and submit. Staff review requests in the admin dashboard, approve them, and the system sends a confirmation email with the meeting details automatically."
+    },
+    {
+      "id": "login",
+      "url": "/login",
+      "wait": 2500,
+      "title": "Login — All Roles",
+      "narration": "All users — admins, instructors, and learners — sign in from this single login page. After authentication, the system redirects each person to the correct dashboard based on their role. Partner institution users can also log in through their branded portal URL."
+    },
+    {
+      "id": "admin-dashboard",
+      "url": "/dashboard/admin",
+      "auth": "admin",
+      "wait": 3500,
+      "title": "Admin Dashboard",
+      "narration": "The admin dashboard is your command center. Here you see key metrics — total students, enrollments, revenue, and active courses. The sidebar gives access to every management area: students, courses, instructors, payments, Zoom, marketing, and reports. This is where your team runs the entire school."
+    },
+    {
+      "id": "admin-students",
+      "url": "/dashboard/students",
+      "auth": "admin",
+      "wait": 3500,
+      "title": "Student Management",
+      "narration": "In Student Management, admins review new signups, approve or reject applications, and manage enrollments. You can mark payments as received, assign study shifts, and use View as Learner to see exactly what a student sees — a powerful support tool."
+    },
+    {
+      "id": "admin-courses",
+      "url": "/dashboard/courses",
+      "auth": "admin",
+      "wait": 3500,
+      "title": "Course & Program Management",
+      "narration": "The courses section lets admins create programs, add courses, set pricing, assign instructors, and publish content. Courses must be approved before they appear on the public catalog. You can also manage study shifts and cohort schedules from here."
+    },
+    {
+      "id": "admin-zoom",
+      "url": "/dashboard/zoom",
+      "auth": "admin",
+      "wait": 3500,
+      "title": "Zoom & Live Classes",
+      "narration": "Zoom integration is built directly into the platform. From this section, admins and instructors create live class meetings, manage recordings, and schedule cohort sessions. Learners join live classes from their dashboard with one click — no separate Zoom links to share manually."
+    },
+    {
+      "id": "admin-meetings",
+      "url": "/dashboard/meeting-registrations",
+      "auth": "admin",
+      "wait": 3500,
+      "title": "Meeting Registrations",
+      "narration": "All meeting and webinar booking requests appear here. Staff can approve, reschedule, or cancel appointments. When you reschedule, the system sends an apology email with options for the prospect to book again or cancel. This replaces tools like Calendly entirely."
+    },
+    {
+      "id": "learner-dashboard",
+      "url": "/dashboard/learner",
+      "auth": "learner",
+      "wait": 3500,
+      "title": "Learner Dashboard",
+      "narration": "After approval, learners access their personal dashboard. They see enrolled courses, upcoming live classes, payment status, learning materials, quizzes, and certificates. Everything a student needs is in one place — no confusion, no extra apps."
+    },
+    {
+      "id": "learner-certificates",
+      "url": "/dashboard/certificates",
+      "auth": "learner",
+      "wait": 3000,
+      "title": "Certificates",
+      "narration": "When a learner completes a course, they receive a digital certificate with a QR code. Anyone can scan the QR code to verify authenticity online. This is especially valuable for corporate clients who need proof of training completion."
+    },
+    {
+      "id": "instructor-dashboard",
+      "url": "/dashboard/instructor",
+      "auth": "instructor",
+      "wait": 3500,
+      "title": "Instructor Portal",
+      "narration": "Instructors have their own dashboard to manage assigned courses, upload materials, create quizzes, schedule live classes, and track student performance. They can also view their earnings and payout history from the earnings section."
+    },
+    {
+      "id": "payments",
+      "type": "title",
+      "title": "Payments & Revenue",
+      "subtitle": "Stripe integration · Automated receipts",
+      "narration": "The platform integrates with Stripe for online payments. Learners pay directly from their dashboard. Admins track revenue, mark manual payments, and manage instructor payout splits. Financial reports are available in the admin analytics section."
+    },
+    {
+      "id": "partners",
+      "type": "title",
+      "title": "Partner Institutions",
+      "subtitle": "White-label portals for franchises",
+      "narration": "Partner institutions get their own branded portal at a custom URL. Each partner manages their own students and courses within their scope, while headquarters retains central oversight. This makes it easy to scale through franchises without rebuilding technology for each location."
+    },
+    {
+      "id": "outro",
+      "type": "title",
+      "title": "You're Ready!",
+      "subtitle": "xanderglobalacademy.com",
+      "narration": "You have now seen the complete Xander Learning Hub system. To get hands-on training for your team, contact us at info at xanderglobalscholars dot com, or book a meeting at xanderglobalacademy.com. Study, learn, and succeed globally with Xander Global Scholars."
+    }
+  ]
+}

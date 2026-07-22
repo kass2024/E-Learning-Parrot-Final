@@ -1,0 +1,167 @@
+import { NavLink } from "@/components/NavLink";
+import { Facebook, Twitter, Linkedin, Instagram, Phone, Mail, MapPin } from "lucide-react";
+import { HUB } from "@/lib/hubConfig";
+import FooterMap from "@/components/FooterMap";
+
+const Footer = () => {
+  const socialLinks = [
+    { icon: Facebook, href: "https://facebook.com", label: "Facebook" },
+    { icon: Twitter, href: "https://twitter.com", label: "Twitter" },
+    { icon: Linkedin, href: "https://linkedin.com", label: "LinkedIn" },
+    { icon: Instagram, href: "https://instagram.com", label: "Instagram" },
+  ];
+
+  const exploreLinks = [
+    { to: "/courses", label: "All Programs" },
+    { to: "/meeting-registration", label: "Book meeting with us" },
+    { to: "/about", label: "About Us" },
+    { to: "/signup", label: "Create Account" },
+  ];
+
+  const importantLinks = [
+    { to: "/", label: "Home" },
+    { to: "/about", label: "About" },
+    { to: "/courses", label: "Programs" },
+    { to: "/institution-signup", label: "Partner Institution Sign Up" },
+    { to: "/login", label: "Login" },
+    { to: "/signup", label: "Sign Up" },
+  ];
+
+  return (
+    <footer className="bg-[#38761D] text-white">
+      <div className="container mx-auto px-4 py-12 md:py-14">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
+          {/* Brand */}
+          <div>
+            <NavLink to="/" className="flex items-center gap-3 text-white mb-4">
+              <img
+                src="/logo.png"
+                alt="parrotglobalstudyacademy"
+                className="w-12 h-12 rounded-full border border-white/20 bg-white p-1 object-contain"
+              />
+              <div className="leading-tight">
+                <div className="text-base font-bold tracking-tight">{HUB.name}</div>
+                <div className="text-xs text-white/70">{HUB.slogan}</div>
+              </div>
+            </NavLink>
+            <p className="text-sm text-white/70 leading-relaxed mb-4">
+              An online learning portal for you to connect from wherever you want and acquire skills at your own pace.
+            </p>
+            <div className="flex gap-2">
+              {socialLinks.map((social) => (
+                <a
+                  key={social.label}
+                  href={social.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-9 h-9 rounded-md bg-white/10 border border-white/15 flex items-center justify-center text-white/80 hover:text-[#E01C21] hover:border-[#E01C21] transition-all"
+                  aria-label={social.label}
+                >
+                  <social.icon className="w-4 h-4" />
+                </a>
+              ))}
+            </div>
+          </div>
+
+          {/* Explore */}
+          <div>
+            <h3 className="text-sm font-bold uppercase tracking-wider text-[#E01C21] mb-4">Explore</h3>
+            <ul className="space-y-2.5">
+              {exploreLinks.map((link) => (
+                <li key={link.to}>
+                  <NavLink
+                    to={link.to}
+                    className="text-sm text-white/75 hover:text-[#E01C21] transition-colors"
+                  >
+                    {link.label}
+                  </NavLink>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Important Links */}
+          <div>
+            <h3 className="text-sm font-bold uppercase tracking-wider text-[#E01C21] mb-4">Important Links</h3>
+            <ul className="space-y-2.5">
+              {importantLinks.map((link) => (
+                <li key={link.to + link.label}>
+                  <NavLink
+                    to={link.to}
+                    className="text-sm text-white/75 hover:text-[#E01C21] transition-colors"
+                  >
+                    {link.label}
+                  </NavLink>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Contact */}
+          <div>
+            <h3 className="text-sm font-bold uppercase tracking-wider text-[#E01C21] mb-4">Contact</h3>
+            <ul className="space-y-3 text-sm text-white/75">
+              <li>
+                <a
+                  href={`mailto:${HUB.supportEmail}`}
+                  className="flex items-center gap-2 hover:text-[#E01C21] transition-colors"
+                >
+                  <Mail className="w-4 h-4 text-[#E01C21] shrink-0" />
+                  {HUB.supportEmail}
+                </a>
+              </li>
+              <li>
+                <a
+                  href={`tel:${HUB.supportPhone.replace(/\s/g, "")}`}
+                  className="flex items-center gap-2 hover:text-[#E01C21] transition-colors"
+                >
+                  <Phone className="w-4 h-4 text-[#E01C21] shrink-0" />
+                  {HUB.supportPhone}
+                </a>
+              </li>
+              <li>
+                <a
+                  href="tel:+12704387305"
+                  className="flex items-center gap-2 hover:text-[#E01C21] transition-colors"
+                >
+                  <Phone className="w-4 h-4 text-[#E01C21] shrink-0" />
+                  +1 (270) 438-7305
+                </a>
+              </li>
+              <li>
+                <a
+                  href="tel:+250788242069"
+                  className="flex items-center gap-2 hover:text-[#E01C21] transition-colors"
+                >
+                  <Phone className="w-4 h-4 text-[#E01C21] shrink-0" />
+                  +250 788 242 069
+                </a>
+              </li>
+              <li className="flex items-start gap-2">
+                <MapPin className="w-4 h-4 text-[#E01C21] shrink-0 mt-0.5" />
+                <span>San Francisco Office | Rwanda Office (Kigali)</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <FooterMap />
+
+        {/* Bottom bar */}
+        <div className="mt-8 pt-6 border-t border-white/10 text-xs text-white/60 flex flex-col md:flex-row items-center justify-between gap-3">
+          <div>© {new Date().getFullYear()} {HUB.company}. All rights reserved.</div>
+          <div className="flex items-center gap-5">
+            <NavLink to="/terms" className="hover:text-[#E01C21] transition-colors">
+              Terms &amp; Conditions
+            </NavLink>
+            <NavLink to="/privacy" className="hover:text-[#E01C21] transition-colors">
+              Privacy Policy
+            </NavLink>
+          </div>
+        </div>
+      </div>
+    </footer>
+  );
+};
+
+export default Footer;
