@@ -52,11 +52,13 @@ def run(client: paramiko.SSHClient, cmd: str, timeout: int = 7200) -> int:
     channel = stdout.channel
     while True:
         while channel.recv_ready():
-            sys.stdout.write(channel.recv(8192).decode("utf-8", errors="replace"))
-            sys.stdout.flush()
+            chunk = channel.recv(8192).decode("utf-8", errors="replace")
+            sys.stdout.buffer.write(chunk.encode("utf-8", errors="replace"))
+            sys.stdout.buffer.flush()
         while channel.recv_stderr_ready():
-            sys.stdout.write(channel.recv_stderr(8192).decode("utf-8", errors="replace"))
-            sys.stdout.flush()
+            chunk = channel.recv_stderr(8192).decode("utf-8", errors="replace")
+            sys.stdout.buffer.write(chunk.encode("utf-8", errors="replace"))
+            sys.stdout.buffer.flush()
         if channel.exit_status_ready() and not channel.recv_ready() and not channel.recv_stderr_ready():
             break
         time.sleep(0.15)
