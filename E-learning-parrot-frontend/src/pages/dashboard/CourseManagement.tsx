@@ -781,9 +781,7 @@ const CourseManagement = () => {
             <DialogTitle>Assign course teacher</DialogTitle>
             <DialogDescription>
               {assigningCourse
-                ? courseTeachers(assigningCourse).length > 0
-                  ? `Unassign the current teacher from "${assigningCourse.title}" before assigning someone else.`
-                  : `Choose who will teach "${assigningCourse.title}" (one person only).`
+                ? `Choose who will teach "${assigningCourse.title}" (instructors or main admin). Assigning replaces the current teacher.`
                 : "Select a teacher."}
             </DialogDescription>
           </DialogHeader>

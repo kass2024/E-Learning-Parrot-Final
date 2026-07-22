@@ -231,25 +231,8 @@ class CourseController extends Controller
             ], 422);
         }
 
-        $existingIds = $course->instructors()->pluck('users.id')->map(fn ($id) => (int) $id)->all();
-        $alreadyAssignedToThisUser = in_array((int) $user->id, $existingIds, true);
-        $otherAssignees = array_values(array_filter($existingIds, fn ($id) => (int) $id !== (int) $user->id));
-
-        if (!$alreadyAssignedToThisUser && count($otherAssignees) > 0) {
-            $current = $course->instructors()
-                ->select(['users.id', 'users.name', 'users.email', 'users.role'])
-                ->get();
-
-            return response()->json([
-                'message' => 'This course is already assigned to one person. Unassign them first, then assign someone new.',
-                'assigned' => $current,
-            ], 422);
-        }
-
-        if (!$alreadyAssignedToThisUser) {
-            // Exclusive: one teacher per course.
-            $course->instructors()->sync([(int) $user->id]);
-        }
+        // One teacher per course; assigning replaces any previous teacher (admins included).
+        $course->instructors()->sync([(int) $user->id]);
 
         // Assigned courses must be Active (Manage Courses / My Courses were stuck on Pending).
         $course->refresh();
