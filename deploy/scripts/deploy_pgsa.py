@@ -5,7 +5,7 @@ Deploy E-Learning-Parrot-Final to VPS without disturbing other projects.
 - Path: /opt/e-learning-parrot-final (never /opt/e-learning-xander)
 - Port: 127.0.0.1:8094 (never 8090/8091/8092/8093)
 - Containers: pgsa_*
-- Domains: parrotglobalstudyacademy.ca + api.parrotglobalstudyacademy.ca
+- Domains: e-learning.school + api.e-learning.school
 """
 from __future__ import annotations
 
@@ -21,6 +21,10 @@ DEPLOY = ROOT / "deploy"
 BACKEND = ROOT / "E-learning-parrot-backend"
 FRONTEND = ROOT / "E-learning-parrot-frontend"
 REPO = "https://github.com/kass2024/E-Learning-Parrot-Final.git"
+
+FRONT_HOST = "e-learning.school"
+API_HOST = "api.e-learning.school"
+WWW_HOST = "www.e-learning.school"
 
 
 def load_env(path: Path) -> dict[str, str]:
@@ -131,7 +135,7 @@ def main() -> int:
     run(
         client,
         f"for i in 1 2 3 4 5 6 7 8 9 10; do "
-        f"curl -sf -H 'Host: api.parrotglobalstudyacademy.ca' http://127.0.0.1:{http_port}/up && exit 0; "
+        f"curl -sf -H 'Host: {API_HOST}' http://127.0.0.1:{http_port}/up && exit 0; "
         f"sleep 8; done; echo 'backend /up not ready yet'; exit 0",
         timeout=120,
     )
@@ -154,32 +158,32 @@ def main() -> int:
     ) != 0:
         return 6
 
-    # SSL via certbot — only these domains
+    # SSL via certbot — primary new domains (+ legacy aliases if still resolving)
     run(
         client,
         "certbot --apache --non-interactive --agree-tos --email infos@parrotglobalstudyacademy.ca "
         "--redirect "
-        "-d parrotglobalstudyacademy.ca "
-        "-d www.parrotglobalstudyacademy.ca "
-        "-d api.parrotglobalstudyacademy.ca "
+        f"-d {FRONT_HOST} "
+        f"-d {WWW_HOST} "
+        f"-d {API_HOST} "
         "|| certbot --apache --non-interactive --agree-tos --register-unsafely-without-email "
         "--redirect "
-        "-d parrotglobalstudyacademy.ca "
-        "-d www.parrotglobalstudyacademy.ca "
-        "-d api.parrotglobalstudyacademy.ca",
+        f"-d {FRONT_HOST} "
+        f"-d {WWW_HOST} "
+        f"-d {API_HOST}",
         timeout=300,
     )
 
     # Verify
-    run(client, "curl -sI https://parrotglobalstudyacademy.ca | head -15")
-    run(client, "curl -sI https://api.parrotglobalstudyacademy.ca/up | head -15")
+    run(client, f"curl -sI https://{FRONT_HOST} | head -15")
+    run(client, f"curl -sI https://{API_HOST}/up | head -15")
     run(client, "docker ps --filter name=pgsa_ --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}'")
     run(client, "docker ps --filter name=parrot_ --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}' | head -10")
 
     client.close()
     print("\nDeploy finished.")
-    print("Front: https://parrotglobalstudyacademy.ca")
-    print("API:   https://api.parrotglobalstudyacademy.ca")
+    print(f"Front: https://{FRONT_HOST}")
+    print(f"API:   https://{API_HOST}")
     print("Admin login email: infos@parrotglobalstudyacademy.ca")
     print("Admin password:    from SEED_PLATFORM_PASSWORD in deploy/.env.production")
     return 0
