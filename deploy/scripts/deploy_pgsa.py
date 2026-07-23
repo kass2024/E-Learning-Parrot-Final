@@ -5,7 +5,7 @@ Deploy E-Learning-Parrot-Final to VPS without disturbing other projects.
 - Path: /opt/e-learning-parrot-final (never /opt/e-learning-xander)
 - Port: 127.0.0.1:8094 (never 8090/8091/8092/8093)
 - Containers: pgsa_*
-- Domains: e-learning.school + api.e-learning.school
+- Domains: parrotglobalstudyacademy.ca + api.parrotglobalstudyacademy.ca
 """
 from __future__ import annotations
 
@@ -22,9 +22,9 @@ BACKEND = ROOT / "E-learning-parrot-backend"
 FRONTEND = ROOT / "E-learning-parrot-frontend"
 REPO = "https://github.com/kass2024/E-Learning-Parrot-Final.git"
 
-FRONT_HOST = "e-learning.school"
-API_HOST = "api.e-learning.school"
-WWW_HOST = "www.e-learning.school"
+FRONT_HOST = "parrotglobalstudyacademy.ca"
+API_HOST = "api.parrotglobalstudyacademy.ca"
+WWW_HOST = "www.parrotglobalstudyacademy.ca"
 
 
 def load_env(path: Path) -> dict[str, str]:

@@ -3,13 +3,10 @@ import { DEFAULT_IMAGES, resolveImage } from "./defaultImages";
 const LOCAL_API = "http://localhost:8000/api/admin";
 /** Prefer same-origin so edge nginx can proxy /api → Laravel even if api.* Host is lost. */
 const PGSA_SAME_ORIGIN_API = "/api/admin";
-const PGSA_PRODUCTION_API = "https://api.e-learning.school/api/admin";
+const PGSA_PRODUCTION_API = "https://api.parrotglobalstudyacademy.ca/api/admin";
 
 /** Frontend host → API base (when VITE_API_URL is not set in the build). */
 const FRONTEND_API_MAP: Record<string, string> = {
-  "e-learning.school": PGSA_SAME_ORIGIN_API,
-  "www.e-learning.school": PGSA_SAME_ORIGIN_API,
-  // Legacy hostnames (kept during domain cutover)
   "parrotglobalstudyacademy.ca": PGSA_SAME_ORIGIN_API,
   "www.parrotglobalstudyacademy.ca": PGSA_SAME_ORIGIN_API,
 };
