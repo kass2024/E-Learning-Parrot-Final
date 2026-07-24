@@ -342,37 +342,22 @@ class DatabaseSchemaService
 
     private static ?bool $demoEnsured = null;
 
-    /** Seed demo instructors/courses/students when the hub has no instructors yet. */
-
+    /**
+     * Keep the platform admin account available.
+     * Never auto-recreate demo partners or demo instructors after deletes.
+     */
     public function ensureDemoData(): array
-
     {
-
         if (self::$demoEnsured === true) {
             return ['success' => true, 'skipped' => 'already_ensured_this_process'];
         }
 
-        if (!config('app.auto_seed_demo', true)) {
-            self::$demoEnsured = true;
-
-            return ['success' => true, 'skipped' => 'auto_seed_disabled'];
-
-        }
-
-
-
         if (!$this->databaseConnected() || !$this->schemaReady()) {
-
             return ['success' => false, 'skipped' => 'schema_not_ready'];
-
         }
 
-
-
-        if (!Schema::hasTable('users') || !Schema::hasTable('courses')) {
-
+        if (!Schema::hasTable('users')) {
             return ['success' => false, 'skipped' => 'missing_tables'];
-
         }
 
         try {
@@ -381,120 +366,58 @@ class DatabaseSchemaService
             Log::warning('ensureAdminFromEnv failed', ['error' => $e->getMessage()]);
         }
 
-        $adminCount = User::query()->where('role', 'admin')->count();
-        $instructorCount = User::query()->where('role', 'instructor')->count();
+        // Permanent locks: once demo rows existed (or admin deleted them), never auto-seed again.
+        $this->setDemoSeedMarker('institutions');
+        $this->setDemoSeedMarker('instructors');
 
-        if ($adminCount === 0) {
-            try {
-                Artisan::call('db:seed', [
-                    '--class' => 'Database\\Seeders\\DatabaseSeeder',
-                    '--force' => true,
-                ]);
-            } catch (\Throwable $e) {
-                Log::warning('Platform user seed failed', ['error' => $e->getMessage()]);
-            }
-        }
+        // Demo auto-seed is intentionally disabled for HTTP/boot paths.
+        // Use `php artisan db:seed --class=...` only when explicitly creating sample data.
+        self::$demoEnsured = true;
 
-        $this->ensureInstitutionSamples();
-
-        if ($instructorCount > 0) {
-
-            self::$demoEnsured = true;
-
-            return ['success' => true, 'skipped' => 'already_has_instructors'];
-
-        }
-
-
-
-        try {
-
-            Artisan::call('db:seed', [
-
-                '--class' => 'Database\\Seeders\\LearningHubDemoSeeder',
-
-                '--force' => true,
-
-            ]);
-
-
-
-            self::$demoEnsured = true;
-
-            return [
-
-                'success' => true,
-
-                'seeded' => true,
-
-                'output' => trim(Artisan::output()),
-
-            ];
-
-        } catch (\Throwable $e) {
-
-            Log::warning('AUTO_SEED_DEMO failed', ['error' => $e->getMessage()]);
-
-
-
-            return ['success' => false, 'error' => $e->getMessage()];
-
-        }
-
+        return ['success' => true, 'skipped' => 'demo_auto_seed_disabled'];
     }
 
-
-
+    /**
+     * @deprecated Kept for callers; never recreates deleted partners.
+     */
     public function ensureInstitutionSamples(): array
-
     {
+        $this->setDemoSeedMarker('institutions');
 
         if (!Schema::hasTable('platform_institutions')) {
-
             return ['success' => true, 'skipped' => 'no_institution_table'];
-
         }
 
-
-
-        if (\App\Models\PlatformInstitution::query()->count() > 0) {
-
-            return ['success' => true, 'skipped' => 'already_has_institutions'];
-
-        }
-
-
-
-        try {
-
-            Artisan::call('db:seed', [
-
-                '--class' => 'Database\\Seeders\\PlatformInstitutionSeeder',
-
-                '--force' => true,
-
-            ]);
-
-
-
-            return ['success' => true, 'seeded' => true, 'output' => trim(Artisan::output())];
-
-        } catch (\Throwable $e) {
-
-            Log::warning('AUTO_SEED institutions failed', ['error' => $e->getMessage()]);
-
-
-
-            return ['success' => false, 'error' => $e->getMessage()];
-
-        }
-
+        return ['success' => true, 'skipped' => 'institution_auto_seed_disabled'];
     }
 
+    /** Call after admin deletes institutions/instructors so boot never resurrects demos. */
+    public function lockDemoSeeds(): void
+    {
+        $this->setDemoSeedMarker('institutions');
+        $this->setDemoSeedMarker('instructors');
+    }
 
+    private function demoSeedMarkerPath(string $name): string
+    {
+        return storage_path('app/demo_seed_markers/' . preg_replace('/[^a-z0-9_-]/i', '', $name) . '.flag');
+    }
+
+    private function hasDemoSeedMarker(string $name): bool
+    {
+        return is_file($this->demoSeedMarkerPath($name));
+    }
+
+    private function setDemoSeedMarker(string $name): void
+    {
+        $dir = storage_path('app/demo_seed_markers');
+        if (!is_dir($dir)) {
+            @mkdir($dir, 0755, true);
+        }
+        @file_put_contents($this->demoSeedMarkerPath($name), date('c'));
+    }
 
     public static function shouldAutoMigrateCli(?array $argv = null): bool
-
     {
 
         if (!static::autoMigrateEnabled()) {

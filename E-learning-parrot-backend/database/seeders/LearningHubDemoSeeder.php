@@ -15,6 +15,12 @@ class LearningHubDemoSeeder extends Seeder
 {
     public function run(): void
     {
+        if (is_file(storage_path('app/demo_seed_markers/instructors.flag'))) {
+            $this->command?->warn('Skipping LearningHubDemoSeeder (instructors.flag lock present).');
+
+            return;
+        }
+
         $demoPassword = PlatformUserService::seedPassword();
 
         $instructor = User::updateOrCreate(

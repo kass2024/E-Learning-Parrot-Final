@@ -5,6 +5,8 @@ const INSTITUTION_KEY = "parrot_institution";
 type CacheEntry<T> = { ts: number; data: T };
 
 const inflightRequests = new Map<string, Promise<unknown>>();
+/** Bumped on invalidate so in-flight fetches cannot rewrite stale rows after delete. */
+const cacheGenerations = new Map<string, number>();
 
 function readStoredInstitutionId(): number | null {
   if (typeof window === "undefined") return null;
@@ -43,6 +45,16 @@ function storageKey(key: string): string {
   return PREFIX + scopedDashboardCacheKey(key);
 }
 
+function currentGeneration(scoped: string): number {
+  return cacheGenerations.get(scoped) ?? 0;
+}
+
+function bumpGeneration(scoped: string): number {
+  const next = currentGeneration(scoped) + 1;
+  cacheGenerations.set(scoped, next);
+  return next;
+}
+
 export function readDashboardCache<T>(key: string): T | null {
   try {
     const raw = sessionStorage.getItem(storageKey(key));
@@ -69,14 +81,17 @@ export function writeDashboardCache<T>(key: string, data: T): void {
 
 export function invalidateDashboardCache(key?: string): void {
   if (key) {
+    const scoped = scopedDashboardCacheKey(key);
     sessionStorage.removeItem(storageKey(key));
-    inflightRequests.delete(scopedDashboardCacheKey(key));
+    inflightRequests.delete(scoped);
+    bumpGeneration(scoped);
     return;
   }
   Object.keys(sessionStorage).forEach((k) => {
     if (k.startsWith(PREFIX)) sessionStorage.removeItem(k);
   });
   inflightRequests.clear();
+  cacheGenerations.clear();
   // Allow warmup to run again after a full cache wipe.
   void import("@/lib/dashboardPrefetchData")
     .then((mod) => mod.resetDashboardPrefetchFlags?.())
@@ -89,26 +104,31 @@ export async function fetchDashboardCached<T>(
   fetcher: () => Promise<T>,
   options?: { force?: boolean }
 ): Promise<{ data: T; fromCache: boolean }> {
+  const scoped = scopedDashboardCacheKey(key);
   const cached = !options?.force ? readDashboardCache<T>(key) : null;
 
   if (cached !== null) {
-    const scoped = scopedDashboardCacheKey(key);
     if (!inflightRequests.has(scoped)) {
+      const gen = currentGeneration(scoped);
       const refresh = fetcher()
         .then((fresh) => {
+          // Drop results that started before an invalidate (e.g. delete + prefetch race).
+          if (currentGeneration(scoped) !== gen) {
+            return fresh;
+          }
           writeDashboardCache(key, fresh);
           notifyDashboardDataUpdated(key, scoped);
           return fresh;
         })
         .finally(() => {
-          inflightRequests.delete(scoped);
+          if (inflightRequests.get(scoped) === refresh) {
+            inflightRequests.delete(scoped);
+          }
         });
       inflightRequests.set(scoped, refresh);
     }
     return { data: cached, fromCache: true };
   }
-
-  const scoped = scopedDashboardCacheKey(key);
 
   // force=true must always hit the network — never reuse a pre-schedule in-flight request.
   if (options?.force) {
@@ -121,13 +141,21 @@ export async function fetchDashboardCached<T>(
     }
   }
 
+  const gen = currentGeneration(scoped);
   const request = fetcher()
     .then((data) => {
+      if (currentGeneration(scoped) !== gen) {
+        // A newer invalidate happened; keep whatever the newer writer put in cache.
+        const newer = readDashboardCache<T>(key);
+        return newer !== null ? newer : data;
+      }
       writeDashboardCache(key, data);
       return data;
     })
     .finally(() => {
-      inflightRequests.delete(scoped);
+      if (inflightRequests.get(scoped) === request) {
+        inflightRequests.delete(scoped);
+      }
     });
 
   inflightRequests.set(scoped, request);

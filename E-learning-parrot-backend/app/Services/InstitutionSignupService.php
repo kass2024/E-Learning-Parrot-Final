@@ -236,12 +236,25 @@ class InstitutionSignupService
 
     /**
      * True when the account must not be deleted/reclaimed for partner login
-     * (admin/staff/instructor, or owner of a different live institution).
+     * (admin/staff, hub instructors, or owner of a different live institution).
+     *
+     * Instructors that belong to $forInstitutionId are NOT protected — they are
+     * removed when that institution is hard-deleted.
      */
     public function emailIsProtected(User $user, ?int $forInstitutionId = null): bool
     {
         $role = strtolower(trim((string) ($user->role ?? '')));
-        if (in_array($role, ['admin', 'staff', 'instructor'], true)) {
+        if (in_array($role, ['admin', 'staff'], true)) {
+            return true;
+        }
+
+        if ($role === 'instructor') {
+            $userInst = (int) ($user->platform_institution_id ?? 0);
+            // Institution-scoped instructors are deleted with that institution.
+            if ($forInstitutionId && $userInst === (int) $forInstitutionId) {
+                return false;
+            }
+
             return true;
         }
 
@@ -263,9 +276,43 @@ class InstitutionSignupService
     }
 
     /**
-     * Remove institution owner + linked partner users so their emails can be reused.
+     * Fully remove a partner institution: tenant data, instructors, partner accounts, payments.
+     *
+     * @return array{instructors_deleted:int,users_deleted:int,courses_deleted:int,students_deleted:int}
      */
-    public function purgeInstitutionAccounts(PlatformInstitution $institution): void
+    public function destroyInstitutionCompletely(PlatformInstitution $institution): array
+    {
+        return DB::transaction(function () use ($institution) {
+            $id = (int) $institution->id;
+            $stats = [
+                'instructors_deleted' => 0,
+                'users_deleted' => 0,
+                'courses_deleted' => 0,
+                'students_deleted' => 0,
+            ];
+
+            // Drop ownership FK before deleting users.
+            if ($institution->owner_user_id) {
+                $institution->owner_user_id = null;
+                $institution->save();
+            }
+
+            $this->purgeInstitutionTenantData($id, $stats);
+            $this->purgeInstitutionAccounts($institution, $stats);
+
+            $institution->payments()->delete();
+            $institution->delete();
+
+            return $stats;
+        });
+    }
+
+    /**
+     * Remove institution owner + linked partner/instructor users so emails can be reused.
+     *
+     * @param  array{instructors_deleted?:int,users_deleted?:int}|null  $stats
+     */
+    public function purgeInstitutionAccounts(PlatformInstitution $institution, ?array &$stats = null): void
     {
         $ids = User::query()
             ->where('platform_institution_id', $institution->id)
@@ -280,7 +327,11 @@ class InstitutionSignupService
         if ($contact !== '') {
             $byEmail = User::query()
                 ->whereRaw('LOWER(email) = ?', [$contact])
-                ->whereIn('role', ['partner_company', 'meeting_user'])
+                ->whereIn('role', ['partner_company', 'meeting_user', 'instructor'])
+                ->where(function ($q) use ($institution) {
+                    $q->where('platform_institution_id', $institution->id)
+                        ->orWhereNull('platform_institution_id');
+                })
                 ->pluck('id')
                 ->all();
             $ids = array_merge($ids, $byEmail);
@@ -294,9 +345,9 @@ class InstitutionSignupService
         User::query()
             ->whereIn('id', $ids)
             ->get()
-            ->each(function (User $user) use ($institution) {
+            ->each(function (User $user) use ($institution, &$stats) {
                 if ($this->emailIsProtected($user, (int) $institution->id)) {
-                    // Detach from this institution but keep protected accounts.
+                    // Detach from this institution but keep protected accounts (admin/staff/hub instructors).
                     if ((int) $user->platform_institution_id === (int) $institution->id) {
                         $user->platform_institution_id = null;
                         $user->save();
@@ -304,8 +355,79 @@ class InstitutionSignupService
 
                     return;
                 }
-                $user->delete();
+
+                $role = strtolower(trim((string) ($user->role ?? '')));
+                $result = \App\Support\HardDeleteUser::delete($user);
+                if (!($result['deleted'] ?? false)) {
+                    if ((int) $user->platform_institution_id === (int) $institution->id) {
+                        $user->platform_institution_id = null;
+                        $user->save();
+                    }
+
+                    return;
+                }
+
+                if (is_array($stats)) {
+                    $stats['users_deleted'] = (int) ($stats['users_deleted'] ?? 0) + 1;
+                    if ($role === 'instructor') {
+                        $stats['instructors_deleted'] = (int) ($stats['instructors_deleted'] ?? 0) + 1;
+                    }
+                }
             });
+    }
+
+    /**
+     * Delete tenant-scoped content for an institution (courses, students, meetings, etc.).
+     *
+     * @param  array{courses_deleted?:int,students_deleted?:int}  $stats
+     */
+    private function purgeInstitutionTenantData(int $institutionId, array &$stats): void
+    {
+        $tablesByInstitution = [
+            'live_meeting_attendance_segments',
+            'meeting_registrations',
+            'available_schedules',
+            'admin_zoom_meetings',
+            'webinar_settings',
+            'livezoom_cohort',
+            'study_shifts',
+            'elearning_programs',
+        ];
+
+        foreach ($tablesByInstitution as $table) {
+            if (!Schema::hasTable($table) || !Schema::hasColumn($table, 'platform_institution_id')) {
+                continue;
+            }
+            DB::table($table)->where('platform_institution_id', $institutionId)->delete();
+        }
+
+        if (Schema::hasTable('courses') && Schema::hasColumn('courses', 'platform_institution_id')) {
+            $courseIds = DB::table('courses')
+                ->where('platform_institution_id', $institutionId)
+                ->pluck('id')
+                ->all();
+            if ($courseIds !== []) {
+                if (Schema::hasTable('assign_cours')) {
+                    DB::table('assign_cours')->whereIn('course_id', $courseIds)->delete();
+                }
+                if (Schema::hasTable('course_materials')) {
+                    DB::table('course_materials')->whereIn('course_id', $courseIds)->delete();
+                }
+                DB::table('courses')->whereIn('id', $courseIds)->delete();
+                $stats['courses_deleted'] = count($courseIds);
+            }
+        }
+
+        if (Schema::hasTable('students') && Schema::hasColumn('students', 'platform_institution_id')) {
+            $studentIds = DB::table('students')
+                ->where('platform_institution_id', $institutionId)
+                ->pluck('id')
+                ->all();
+            if ($studentIds !== []) {
+                DB::table('students')->whereIn('id', $studentIds)->delete();
+                $stats['students_deleted'] = count($studentIds);
+            }
+        }
     }
 
     /**

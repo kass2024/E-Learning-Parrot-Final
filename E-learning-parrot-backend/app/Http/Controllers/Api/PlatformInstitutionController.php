@@ -296,11 +296,24 @@ class PlatformInstitutionController extends Controller
 
     public function destroy(PlatformInstitution $platformInstitution)
     {
-        $this->signupService->purgeInstitutionAccounts($platformInstitution);
-        $platformInstitution->payments()->delete();
-        $platformInstitution->delete();
+        try {
+            $stats = $this->signupService->destroyInstitutionCompletely($platformInstitution);
+            app(\App\Services\DatabaseSchemaService::class)->lockDemoSeeds();
+            \App\Support\ApiListCache::bump('users');
+            \App\Support\ApiListCache::bump('instructors');
+            \App\Support\ApiListCache::bump('courses');
+        } catch (\Throwable $e) {
+            report($e);
 
-        return response()->json(['message' => 'Institution removed']);
+            return response()->json([
+                'message' => 'Failed to delete institution completely: ' . $e->getMessage(),
+            ], 500);
+        }
+
+        return response()->json([
+            'message' => 'Institution and related instructors removed',
+            'deleted' => $stats,
+        ]);
     }
 
     public function sendPaymentReminder(PlatformInstitution $platformInstitution)

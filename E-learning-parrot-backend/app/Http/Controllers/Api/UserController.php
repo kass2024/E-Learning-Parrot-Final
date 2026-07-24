@@ -294,12 +294,78 @@ class UserController extends Controller
         ]);
     }
 
-    public function destroy(User $user)
+    public function destroy(Request $request, User $user)
     {
-        $user->delete();
+        $actor = $request->user();
+        $role = strtolower(trim((string) ($user->role ?? '')));
+
+        if (!in_array($role, ['instructor', 'partner_company', 'meeting_user', 'learner'], true)) {
+            return response()->json([
+                'message' => 'Only instructor and non-admin accounts can be deleted here.',
+            ], 422);
+        }
+
+        $result = \App\Support\HardDeleteUser::delete($user, $actor?->id ? (int) $actor->id : null);
+        if (!($result['deleted'] ?? false)) {
+            return response()->json([
+                'message' => $result['reason'] ?? 'User could not be deleted.',
+            ], 422);
+        }
+
+        if ($role === 'instructor') {
+            app(\App\Services\DatabaseSchemaService::class)->lockDemoSeeds();
+        }
+
         ApiListCache::bump('users');
         ApiListCache::bump('instructors');
+        ApiListCache::bump('courses');
 
         return response()->json(['message' => 'User deleted']);
+    }
+
+    /**
+     * Hard-delete all hub instructors currently visible to the admin (tenant-scoped for partners).
+     */
+    public function destroyAllInstructors(Request $request)
+    {
+        $actor = $request->user();
+        $actorRole = strtolower(trim((string) ($actor?->role ?? '')));
+        if (!in_array($actorRole, ['admin', 'staff'], true)) {
+            return response()->json(['message' => 'Only admin or staff can delete all instructors.'], 403);
+        }
+
+        $partnerStrict = PlatformTenantScope::partnerTenantIdStrict($request);
+        if ($partnerStrict === 0) {
+            return response()->json(['message' => 'No instructors deleted', 'deleted' => 0]);
+        }
+        $tenantId = $partnerStrict !== null ? $partnerStrict : PlatformTenantScope::resolveTenantId($request);
+
+        $query = User::query()->where('role', 'instructor');
+        if ($tenantId !== null) {
+            $query->where('platform_institution_id', $tenantId);
+        } else {
+            $query->whereNull('platform_institution_id');
+        }
+
+        $deleted = 0;
+        $query->orderBy('id')->get()->each(function (User $user) use ($actor, &$deleted) {
+            $result = \App\Support\HardDeleteUser::delete($user, $actor?->id ? (int) $actor->id : null);
+            if ($result['deleted'] ?? false) {
+                $deleted++;
+            }
+        });
+
+        app(\App\Services\DatabaseSchemaService::class)->lockDemoSeeds();
+
+        ApiListCache::bump('users');
+        ApiListCache::bump('instructors');
+        ApiListCache::bump('courses');
+
+        return response()->json([
+            'message' => $deleted === 1
+                ? '1 instructor deleted'
+                : "{$deleted} instructors deleted",
+            'deleted' => $deleted,
+        ]);
     }
 }

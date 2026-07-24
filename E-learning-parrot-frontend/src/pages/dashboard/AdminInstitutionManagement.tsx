@@ -51,6 +51,7 @@ import {
   type PlatformInstitutionInfo,
 } from "@/api/axios";
 import { useDashboardQuery } from "@/hooks/useDashboardQuery";
+import { invalidateDashboardCache, writeDashboardCache } from "@/lib/dashboardCache";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import InstitutionAdminEditDialog from "@/components/dashboard/InstitutionAdminEditDialog";
 import InstitutionAdminCreateDialog from "@/components/dashboard/InstitutionAdminCreateDialog";
@@ -133,7 +134,7 @@ function getPageNumbers(current: number, total: number): (number | "ellipsis")[]
 const AdminInstitutionManagement = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { data, loading, refreshing, reload } = useDashboardQuery("platform-institutions", getPlatformInstitutions);
+  const { data, loading, refreshing, reload, setData } = useDashboardQuery("platform-institutions", getPlatformInstitutions);
   const { data: promos, reload: reloadPromos } = useDashboardQuery("institution-promos", getInstitutionPromoCodes);
   const rows = useMemo(() => (Array.isArray(data) ? (data as InstitutionRow[]) : []), [data]);
   const [search, setSearch] = useState("");
@@ -242,14 +243,28 @@ const AdminInstitutionManagement = () => {
   };
 
   const refresh = async () => {
+    invalidateDashboardCache("platform-institutions");
+    invalidateDashboardCache("institution-promos");
     await reload();
     await reloadPromos();
   };
 
-  const withAction = async (id: number, fn: () => Promise<unknown>, success: string) => {
+  const withAction = async (
+    id: number,
+    fn: () => Promise<unknown>,
+    success: string,
+    options?: { removeFromList?: boolean },
+  ) => {
     setActionId(id);
     try {
       await fn();
+      // Drop stale session cache immediately so a re-seed race cannot flash old rows.
+      invalidateDashboardCache("platform-institutions");
+      if (options?.removeFromList) {
+        const remaining = rows.filter((row) => row.id !== id);
+        writeDashboardCache("platform-institutions", remaining);
+        setData(remaining);
+      }
       toast({ title: success });
       await refresh();
     } catch (err: unknown) {
@@ -437,12 +452,23 @@ const AdminInstitutionManagement = () => {
           <DropdownMenuItem
             className="text-destructive focus:text-destructive"
             onClick={() => {
-              if (!window.confirm(`Remove "${row.name}" permanently?`)) return;
-              void withAction(row.id, () => deletePlatformInstitution(row.id), "Institution removed");
+              if (
+                !window.confirm(
+                  `Permanently delete "${row.name}"?\n\nThis removes the institution, its instructors, partner accounts, courses, students, and meetings. This cannot be undone.`
+                )
+              ) {
+                return;
+              }
+              void withAction(
+                row.id,
+                () => deletePlatformInstitution(row.id),
+                "Institution and instructors removed permanently",
+                { removeFromList: true },
+              );
             }}
           >
             <Trash2 className="mr-2 h-4 w-4" />
-            Delete
+            Delete completely
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

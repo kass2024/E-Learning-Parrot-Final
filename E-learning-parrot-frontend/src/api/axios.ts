@@ -1546,7 +1546,20 @@ export const resetInstitutionOwnerPassword = async (
 
 export const deletePlatformInstitution = async (id: number) => {
   const response = await api.delete(`/platform-institutions/${id}`);
-  return response.data;
+  return response.data as {
+    message: string;
+    deleted?: {
+      instructors_deleted?: number;
+      users_deleted?: number;
+      courses_deleted?: number;
+      students_deleted?: number;
+    };
+  };
+};
+
+export const deleteAllInstructors = async () => {
+  const response = await api.delete(`/users/instructors/all`);
+  return response.data as { message: string; deleted: number };
 };
 
 export const sendInstitutionPaymentReminder = async (id: number) => {

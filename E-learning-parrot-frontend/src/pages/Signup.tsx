@@ -12,13 +12,11 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { SafeImage } from "@/components/ui/SafeImage";
 import { useToast } from "@/components/ui/use-toast";
-import { registerStudent, registerInstructor, getLearningPrograms, getPublicInstitutionChoices, getInstitutionBySignupSlug, type LearningProgramPayload, type PlatformInstitutionInfo } from "@/api/axios";
+import { registerStudent, registerInstructor, getLearningPrograms, getInstitutionBySignupSlug, type LearningProgramPayload, type PlatformInstitutionInfo } from "@/api/axios";
 import { StudyShiftPicker } from "@/components/StudyShiftPicker";
-import { saveInstitutionContext } from "@/lib/institutionContext";
-import { clearStudyShiftCache } from "@/lib/studyShiftCache";
+import { saveInstitutionContext, clearInstitutionContext, resolveInstitutionLogoUrl } from "@/lib/institutionContext";
 import { HUB } from "@/lib/hubConfig";
 import { hubBrand } from "@/lib/hubBrand";
-import { resolveInstitutionLogoUrl } from "@/lib/institutionContext";
 import { HOME_UNIQUE_IMAGES } from "@/lib/homeImages";
 import { cn } from "@/lib/utils";
 import ParrotLogo from "@/components/ParrotLogo";
@@ -73,12 +71,9 @@ const STEPS = [
 ];
 
 const LEVELS = [
-  { id: "beginner", label: "Beginner", description: "Just starting out" },
-  { id: "elementary", label: "Elementary", description: "Basic phrases" },
-  { id: "intermediate", label: "Intermediate", description: "Daily conversations" },
-  { id: "upper_intermediate", label: "Upper Int.", description: "Good fluency" },
-  { id: "advanced", label: "Advanced", description: "Strong command" },
-  { id: "upper_advanced", label: "Proficient", description: "Near-native" },
+  { id: "beginner", label: "Débutant", description: "Juste commencer" },
+  { id: "elementary", label: "Elementary", description: "Phrases de base" },
+  { id: "intermediate", label: "Intermediate", description: "Conversations quotidiennes" },
 ];
 
 const evaluatePasswordStrength = (value: string): "empty" | "weak" | "medium" | "strong" => {
@@ -105,11 +100,13 @@ const Signup = () => {
   const isInstructorSignup = searchParams.get("role") === "instructor";
   const institutionSlugParam = (routeSlug || searchParams.get("institution") || searchParams.get("inst") || "").trim().toLowerCase();
   const isInstitutionPortalSignup = Boolean(institutionSlugParam);
+  /** Institution comes from the link (/join/:slug) or defaults to main platform — never ask the learner to pick. */
+  const skipInstitutionStep = !isInstructorSignup;
   const isInstitutionLocked = Boolean(institutionSlugParam && !isInstructorSignup);
   const { toast } = useToast();
   const brand = hubBrand();
 
-  const [step, setStep] = useState<Step>(isInstructorSignup ? 3 : isInstitutionLocked ? 2 : 1);
+  const [step, setStep] = useState<Step>(isInstructorSignup ? 3 : 2);
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
@@ -131,7 +128,9 @@ const Signup = () => {
   const [coursesLoading, setCoursesLoading] = useState(false);
   const [courseError, setCourseError] = useState<string | null>(null);
   const [institutionChoices, setInstitutionChoices] = useState<PlatformInstitutionInfo[]>([]);
-  const [selectedInstitutionId, setSelectedInstitutionId] = useState<InstitutionChoice | null>(null);
+  const [selectedInstitutionId, setSelectedInstitutionId] = useState<InstitutionChoice | null>(
+    institutionSlugParam ? null : "main",
+  );
   const [lockedInstitution, setLockedInstitution] = useState<PlatformInstitutionInfo | null>(null);
   const [lockedInstitutionLoading, setLockedInstitutionLoading] = useState(isInstitutionPortalSignup);
   const [lockedInstitutionError, setLockedInstitutionError] = useState<string | null>(null);
@@ -160,25 +159,26 @@ const Signup = () => {
     if (isInstructorSignup) {
       return ((step - 3) / 1) * 100;
     }
-    if (isInstitutionLocked) {
+    if (skipInstitutionStep) {
       return step <= 2 ? 0 : ((step - 2) / 2) * 100;
     }
     return ((step - 1) / (STEPS.length - 1)) * 100;
-  }, [step, isInstructorSignup, isInstitutionLocked]);
+  }, [step, isInstructorSignup, skipInstitutionStep]);
 
   const visibleSteps = useMemo(() => {
     if (isInstructorSignup) return STEPS.filter((s) => s.id >= 3);
-    if (isInstitutionLocked) return STEPS.filter((s) => s.id >= 2);
+    if (skipInstitutionStep) return STEPS.filter((s) => s.id >= 2);
     return STEPS;
-  }, [isInstructorSignup, isInstitutionLocked]);
+  }, [isInstructorSignup, skipInstitutionStep]);
 
-  const minStep = isInstructorSignup ? 3 : isInstitutionLocked ? 2 : 1;
+  const minStep = isInstructorSignup ? 3 : skipInstitutionStep ? 2 : 1;
 
   const selectedInstitutionLabel = useMemo(() => {
+    if (lockedInstitution?.name) return lockedInstitution.name;
     if (selectedInstitutionId === null) return null;
     if (selectedInstitutionId === "main") return HUB.company;
     return institutionChoices.find((i) => i.id === selectedInstitutionId)?.name ?? "Partner institution";
-  }, [selectedInstitutionId, institutionChoices]);
+  }, [selectedInstitutionId, institutionChoices, lockedInstitution]);
 
   useEffect(() => {
     try {
@@ -270,12 +270,18 @@ const Signup = () => {
     };
   }, [isInstructorSignup, isInstitutionPortalSignup, institutionSlugParam]);
 
+  // Main-platform signup link: always hub courses (ignore leftover partner context).
   useEffect(() => {
     if (isInstructorSignup || isInstitutionPortalSignup) return;
-    getPublicInstitutionChoices()
-      .then((list) => setInstitutionChoices(Array.isArray(list) ? list : []))
-      .catch(() => setInstitutionChoices([]));
+    setSelectedInstitutionId("main");
+    clearInstitutionContext();
+    setStep((current) => (current < 2 ? 2 : current));
   }, [isInstructorSignup, isInstitutionPortalSignup]);
+
+  // Institution picker is no longer shown.
+  useEffect(() => {
+    setInstitutionChoices([]);
+  }, []);
 
   const updateStoredCourses = (courses: SelectedCourse[]) => {
     try {
@@ -293,17 +299,6 @@ const Signup = () => {
   const syncCourses = (courses: SelectedCourse[]) => {
     setSelectedCourses(courses);
     updateStoredCourses(courses);
-  };
-
-  const handleInstitutionPick = (choice: InstitutionChoice) => {
-    if (selectedInstitutionId !== choice) {
-      setSelectedInstitutionId(choice);
-      setSelectedProgramId(null);
-      syncCourses([]);
-      setPrograms([]);
-      setCourseError(null);
-      clearStudyShiftCache();
-    }
   };
 
   const handleRemoveCourse = (id?: number) => {
@@ -451,13 +446,11 @@ const Signup = () => {
       }
     } else if (!validateStep(1) || !validateStep(2) || !validateStep(3)) {
       setStep(
-        selectedInstitutionId === null
-          ? 1
-          : !selectedCourses.length
-            ? 2
-            : !firstName || !email
-              ? 3
-              : step,
+        !selectedCourses.length
+          ? 2
+          : !firstName || !email
+            ? 3
+            : step,
       );
       return;
     }
@@ -930,99 +923,7 @@ const Signup = () => {
                 )}
 
                 <AnimatePresence mode="wait">
-                  {/* Step 1 — Institution */}
-                  {step === 1 && !isInstructorSignup && !isInstitutionLocked && (
-                    <motion.div
-                      key="step-institution"
-                      initial={{ opacity: 0, x: 20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: -20 }}
-                      transition={{ duration: 0.3 }}
-                      className="space-y-5"
-                    >
-                      <div>
-                        <h2 className="text-xl font-bold text-[var(--brand-primary)]">Select your institution</h2>
-                        <p className="text-sm text-slate-500 mt-1">
-                          Choose where you are enrolling before picking programs and courses.
-                        </p>
-                      </div>
-
-                      <div className="grid gap-3 sm:grid-cols-2">
-                        <button
-                          type="button"
-                          onClick={() => handleInstitutionPick("main")}
-                          className={cn(
-                            "rounded-xl border-2 p-4 text-left transition-all",
-                            selectedInstitutionId === "main"
-                              ? "border-[var(--brand-primary)] bg-[var(--brand-primary)]/5 shadow-sm"
-                              : "border-slate-200 bg-white hover:border-[var(--brand-primary)]/40",
-                          )}
-                        >
-                          <div className="flex items-start gap-3">
-                            <span
-                              className={cn(
-                                "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-sm font-bold",
-                                selectedInstitutionId === "main"
-                                  ? "bg-[var(--brand-primary)] text-white"
-                                  : "bg-slate-100 text-[var(--brand-primary)]",
-                              )}
-                            >
-                              {HUB.company.charAt(0)}
-                            </span>
-                            <div>
-                              <p className="font-semibold text-slate-900">{HUB.company}</p>
-                              <p className="text-xs text-slate-500 mt-1">Main learning platform</p>
-                            </div>
-                          </div>
-                        </button>
-
-                        {(institutionChoices ?? []).map((inst) => {
-                          const logo = resolveInstitutionLogoUrl(inst);
-                          const selected = selectedInstitutionId === inst.id;
-                          return (
-                            <button
-                              key={inst.id}
-                              type="button"
-                              onClick={() => inst.id && handleInstitutionPick(inst.id)}
-                              className={cn(
-                                "rounded-xl border-2 p-4 text-left transition-all",
-                                selected
-                                  ? "border-[var(--brand-primary)] bg-[var(--brand-primary)]/5 shadow-sm"
-                                  : "border-slate-200 bg-white hover:border-[var(--brand-primary)]/40",
-                              )}
-                            >
-                              <div className="flex items-start gap-3">
-                                {logo ? (
-                                  <img
-                                    src={logo}
-                                    alt=""
-                                    className="h-10 w-10 shrink-0 rounded-xl border border-slate-200 object-cover bg-white"
-                                  />
-                                ) : (
-                                  <span
-                                    className={cn(
-                                      "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-sm font-bold",
-                                      selected
-                                        ? "bg-[var(--brand-primary)] text-white"
-                                        : "bg-slate-100 text-[var(--brand-primary)]",
-                                    )}
-                                  >
-                                    {(inst.name || "P").charAt(0)}
-                                  </span>
-                                )}
-                                <div>
-                                  <p className="font-semibold text-slate-900">{inst.name}</p>
-                                  <p className="text-xs text-slate-500 mt-1">Partner institution</p>
-                                </div>
-                              </div>
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </motion.div>
-                  )}
-
-                  {/* Step 2 — Courses */}
+                  {/* Step 2 — Courses (institution is inferred from the signup link) */}
                   {step === 2 && !isInstructorSignup && (
                     <motion.div
                       key="step2-courses"

@@ -29,6 +29,17 @@ class DatabaseSeeder extends Seeder
             $plainPassword
         );
 
+        // Demo partners / instructors are opt-in only. Auto-seed was recreating
+        // rows after admins deleted them on production.
+        $seedDemo = filter_var(env('AUTO_SEED_DEMO', false), FILTER_VALIDATE_BOOL)
+            || filter_var(env('SEED_DEMO_PARTNERS', false), FILTER_VALIDATE_BOOL);
+
+        if (!$seedDemo) {
+            $this->command?->info('Skipping demo partners/instructors (AUTO_SEED_DEMO=false).');
+
+            return;
+        }
+
         self::seedPlatformUser(
             'instructor@xanderglobalscholars.com',
             'Instructor User',

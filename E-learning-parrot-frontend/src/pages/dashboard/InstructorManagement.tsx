@@ -25,10 +25,11 @@ import {
   createUser,
   updateUser,
   deleteUser,
+  deleteAllInstructors,
   CoursePayload,
 } from "@/api/axios";
 import { useDashboardQuery } from "@/hooks/useDashboardQuery";
-import { invalidateDashboardCache } from "@/lib/dashboardCache";
+import { invalidateDashboardCache, writeDashboardCache } from "@/lib/dashboardCache";
 import { TableSkeleton } from "@/components/admin/TableSkeleton";
 import { SmartSearchInput } from "@/components/admin/SmartSearchInput";
 import { startAdminViewAs } from "@/lib/adminImpersonation";
@@ -62,6 +63,7 @@ const InstructorManagement = () => {
     loading,
     refreshing,
     reload: reloadInstructors,
+    setData: setInstructorsData,
   } = useDashboardQuery<InstructorWithCourses[]>("instructors-with-courses", getInstructorsWithCourses);
   const instructors = useMemo(
     () => (Array.isArray(instructorsData) ? instructorsData : []),
@@ -87,6 +89,7 @@ const InstructorManagement = () => {
   const [editPassword, setEditPassword] = useState("");
   const [savingEdit, setSavingEdit] = useState(false);
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [deletingAll, setDeletingAll] = useState(false);
   const [creating, setCreating] = useState(false);
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -223,21 +226,24 @@ const InstructorManagement = () => {
   const handleDeleteInstructor = async (instructor: InstructorWithCourses) => {
     if (!instructor.id) return;
     const confirmed = window.confirm(
-      `Delete instructor "${instructor.name}"? This cannot be undone.`
+      `Permanently delete instructor "${instructor.name}"?\n\nCourse assignments and payout requests for this instructor will also be removed. This cannot be undone.`
     );
     if (!confirmed) return;
 
     setDeletingId(instructor.id);
     try {
       await deleteUser(instructor.id);
+      const remaining = instructors.filter((row) => row.id !== instructor.id);
+      invalidateDashboardCache("instructors-with-courses");
+      invalidateDashboardCache("users-list");
+      writeDashboardCache("instructors-with-courses", remaining);
+      setInstructorsData(remaining);
       toast({
         variant: "destructive",
         title: "Instructor deleted",
-        description: `${instructor.name} has been removed.`,
+        description: `${instructor.name} has been removed permanently.`,
         duration: 4000,
       });
-      invalidateDashboardCache("instructors-with-courses");
-      invalidateDashboardCache("users-list");
       await reloadInstructors();
     } catch (error: any) {
       toast({
@@ -248,6 +254,39 @@ const InstructorManagement = () => {
       });
     } finally {
       setDeletingId(null);
+    }
+  };
+
+  const handleDeleteAllInstructors = async () => {
+    if (!instructors.length) return;
+    const confirmed = window.confirm(
+      `Permanently delete ALL ${instructors.length} instructor(s) shown here?\n\nThis cannot be undone.`
+    );
+    if (!confirmed) return;
+
+    setDeletingAll(true);
+    try {
+      const res = await deleteAllInstructors();
+      invalidateDashboardCache("instructors-with-courses");
+      invalidateDashboardCache("users-list");
+      writeDashboardCache("instructors-with-courses", []);
+      setInstructorsData([]);
+      toast({
+        variant: "destructive",
+        title: "Instructors deleted",
+        description: res.message || `${res.deleted} instructor(s) removed permanently.`,
+        duration: 4000,
+      });
+      await reloadInstructors();
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Error deleting instructors",
+        description: error?.response?.data?.message || "Failed to delete instructors.",
+        duration: 4000,
+      });
+    } finally {
+      setDeletingAll(false);
     }
   };
 
@@ -421,6 +460,16 @@ const InstructorManagement = () => {
           </div>
         </div>
         <div className="flex items-center gap-2">
+          <Button
+            variant="destructive"
+            size="sm"
+            className="gap-2"
+            disabled={loading || refreshing || deletingAll || instructors.length === 0}
+            onClick={() => void handleDeleteAllInstructors()}
+          >
+            {deletingAll ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+            Delete all
+          </Button>
           <Button
             variant="outline"
             size="sm"

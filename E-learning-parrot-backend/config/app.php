@@ -68,7 +68,7 @@ return [
     |--------------------------------------------------------------------------
     */
 
-    'auto_migrate' => (bool) env('AUTO_MIGRATE', true),
+    'auto_migrate' => filter_var(env('AUTO_MIGRATE', true), FILTER_VALIDATE_BOOL),
 
     /*
     |--------------------------------------------------------------------------
@@ -80,7 +80,7 @@ return [
     |
     */
 
-    'auto_seed_demo' => (bool) env('AUTO_SEED_DEMO', true),
+    'auto_seed_demo' => filter_var(env('AUTO_SEED_DEMO', false), FILTER_VALIDATE_BOOL),
 
     /*
     |--------------------------------------------------------------------------

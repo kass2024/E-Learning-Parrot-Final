@@ -289,6 +289,7 @@ Route::prefix('admin')->group(function () {
     Route::get('institution-promo-codes', [PlatformInstitutionController::class, 'promoCodes']);
     Route::post('institution-promo-codes', [PlatformInstitutionController::class, 'storePromoCode']);
     Route::put('users/{user}', [UserController::class, 'update']);
+    Route::delete('users/instructors/all', [UserController::class, 'destroyAllInstructors']);
     Route::delete('users/{user}', [UserController::class, 'destroy']);
 
     /*** ---------------- ADMIN USER PROFILE ---------------- ***/

@@ -19,6 +19,13 @@ class PlatformInstitutionSeeder extends Seeder
             return;
         }
 
+        // Honor permanent lock after admin deleted demo partners.
+        if (is_file(storage_path('app/demo_seed_markers/institutions.flag'))) {
+            $this->command?->warn('Skipping PlatformInstitutionSeeder (institutions.flag lock present).');
+
+            return;
+        }
+
         $password = env('SEED_PARTNER_PASSWORD', PlatformUserService::seedPassword());
 
         InstitutionPromoCode::updateOrCreate(
